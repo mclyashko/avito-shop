@@ -5,11 +5,10 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/mclyashko/avito-shop/internal/config"
 	"github.com/mclyashko/avito-shop/internal/service"
 )
 
-func GetInfo(c *fiber.Ctx, ctx context.Context, cfg *config.Config, pool *pgxpool.Pool) error {
+func GetInfo(c *fiber.Ctx, ctx context.Context, pool *pgxpool.Pool) error {
 	claims, ok := c.Locals("claims").(*service.JWTClaims)
 	if !ok {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"errors": "Unauthorized"})

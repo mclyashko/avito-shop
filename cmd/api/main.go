@@ -29,7 +29,11 @@ func main() {
 	})
 
 	app.Get("/api/info", middleware.AuthMiddleware(cfg), func(c *fiber.Ctx) error {
-		return handler.GetInfo(c, ctx, cfg, pool)
+		return handler.GetInfo(c, ctx, pool)
+	})
+
+	app.Post("/api/sendCoin", middleware.AuthMiddleware(cfg), func (c *fiber.Ctx) error  {
+		return handler.SendCoinHandler(c, ctx, pool)
 	})
 
 	log.Println("Server is running on :8080")

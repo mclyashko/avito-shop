@@ -22,7 +22,7 @@ CREATE TABLE user_item (
 -- История переводов
 CREATE TABLE coin_transfer (
     id UUID PRIMARY KEY,
-    sender_id VARCHAR(16) REFERENCES "user"(login),  -- NULL, если пополнение
+    sender_id VARCHAR(16) NOT NULL REFERENCES "user"(login),
     receiver_id VARCHAR(16) NOT NULL REFERENCES "user"(login),
     amount BIGINT NOT NULL  -- Сумма монет
 );

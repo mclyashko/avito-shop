@@ -38,6 +38,27 @@ func GetUserByLogin(ctx context.Context, pool *pgxpool.Pool, login string) (*mod
 	return &user, nil
 }
 
+func GetUserByLoginTx(ctx context.Context, tx pgx.Tx, login string) (*model.User, error) {
+	query := `SELECT login, password_hash, balance FROM "user" WHERE login = $1`
+
+	row := tx.QueryRow(ctx, query, login)
+
+	var user model.User
+
+	err := row.Scan(&user.Login, &user.PasswordHash, &user.Balance)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, ErrUserNotFound
+		}
+		log.Printf("Failed to get user by login: %v", err)
+		return nil, err
+	}
+
+	log.Printf("Got user: %v", user)
+	return &user, nil
+}
+
+
 func CreateNewUser(ctx context.Context, pool *pgxpool.Pool, login string, password string) (*model.User, error) {
 	hash := sha256.New()
 	hash.Write([]byte(password))
@@ -61,4 +82,19 @@ func CreateNewUser(ctx context.Context, pool *pgxpool.Pool, login string, passwo
 
 	log.Printf("User created: %v", user)
 	return &user, nil
+}
+
+func UpdateUserBalance(ctx context.Context, tx pgx.Tx, login string, amount int64) error {
+	query := `
+		UPDATE "user" 
+		SET balance = balance + $1 WHERE login = $2
+	`
+	
+	_, err := tx.Exec(ctx, query, amount, login)
+	if err != nil {
+		log.Printf("Failed to update balance for login: %v, error: %v", login, err)
+		return err
+	}
+	
+	return nil
 }

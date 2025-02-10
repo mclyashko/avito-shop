@@ -6,7 +6,7 @@ import (
 
 type CoinTransfer struct {
 	ID         uuid.UUID
-	SenderID   string // Может быть ""
+	SenderID   string
 	ReceiverID string
 	Amount     int64
 }
