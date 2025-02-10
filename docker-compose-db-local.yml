@@ -1,0 +1,25 @@
+networks:
+  avito-shop-network:
+    driver: bridge
+
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:17
+    command: ["postgres", "-c", "log_statement=all"]
+    volumes:
+      - ./env/postgres/pg_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: avito_shop
+    networks:
+      - avito-shop-network
+    restart: always
+    healthcheck:
+      test: pg_isready -d avito_shop -U user
+      interval: 10s
+      timeout: 30s
+      retries: 5
+    ports:
+      - "5432:5432"

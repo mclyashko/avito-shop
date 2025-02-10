@@ -1,0 +1,42 @@
+networks:
+  avito-shop-network:
+    driver: bridge
+
+services:
+  db:
+    container_name: db
+    image: postgres:17
+    volumes:
+      - ./env/postgres/pg_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: avito_shop
+    networks:
+      - avito-shop-network
+    restart: always
+    healthcheck:
+      test: pg_isready -d avito_shop -U user
+      interval: 10s
+      timeout: 30s
+      retries: 5
+    ports:
+      - "5432:5432"
+  avito-shop:
+    platform: linux/amd64
+    build: .
+    environment:
+      DATABASE_URL: postgres://user:password@db:5432/avito_shop?sslmode=disable
+    networks:
+      - avito-shop-network
+    restart: "always"
+    healthcheck:
+      test: "curl --fail --silent --max-time 10 http://localhost:80/ || exit 1"
+      interval: 10s
+      timeout: 30s
+      retries: 5
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
