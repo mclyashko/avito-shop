@@ -21,7 +21,7 @@ type AuthResponse struct {
 	Token string `json:"token"`
 }
 
-func Authenticate(c *fiber.Ctx, ctx context.Context, cfg *config.Config,pool *pgxpool.Pool) error {
+func Authenticate(c *fiber.Ctx, ctx context.Context, cfg *config.Config, pool *pgxpool.Pool) error {
 	var req AuthRequest
 
 	if err := c.BodyParser(&req); err != nil {
@@ -29,11 +29,11 @@ func Authenticate(c *fiber.Ctx, ctx context.Context, cfg *config.Config,pool *pg
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"errors": "Invalid request"})
 	}
 
-	token, err := service.GetTokenByUsernameAndPassword(ctx, pool, req.Username, req.Password, cfg.JwtSecretKey) 
-	if (err == service.ErrWrongPassword) {
+	token, err := service.GetTokenByUsernameAndPassword(ctx, pool, req.Username, req.Password, cfg.JwtSecretKey)
+	if err == service.ErrWrongPassword {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"errors": "Wrong password"})
 	}
-	if (err != nil) {
+	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"errors": err})
 	}
 

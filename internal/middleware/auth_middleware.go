@@ -36,6 +36,8 @@ func AuthMiddleware(cfg *config.Config) fiber.Handler {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"errors": "Token expired"})
 		}
 
+		c.Locals("claims", claims)
+
 		return c.Next()
 	}
 }

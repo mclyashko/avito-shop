@@ -28,6 +28,10 @@ func main() {
 		return handler.Authenticate(c, ctx, cfg, pool)
 	})
 
+	app.Get("/api/info", middleware.AuthMiddleware(cfg), func(c *fiber.Ctx) error {
+		return handler.GetInfo(c, ctx, cfg, pool)
+	})
+
 	log.Println("Server is running on :8080")
 	log.Fatal(app.Listen(":8080"))
 }
