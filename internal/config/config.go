@@ -8,7 +8,8 @@ import (
 )
 
 type Config struct {
-	DbURL string
+	DbURL        string
+	JwtSecretKey []byte
 }
 
 func LoadConfig() *Config {
@@ -18,6 +19,7 @@ func LoadConfig() *Config {
 	}
 
 	return &Config{
-		DbURL: os.Getenv("DATABASE_URL"),
+		DbURL:        os.Getenv("DATABASE_URL"),
+		JwtSecretKey: []byte(os.Getenv("JWT_SECRET_KEY")),
 	}
 }
