@@ -12,7 +12,7 @@ type BuyService interface {
 }
 
 type BuyServiceImpl struct {
-	*Service
+	Service
 	UserAccessor     db.UserAccessor
 	ItemAccessor     db.ItemAccessor
 	UserItemAccessor db.UserItemAccessor

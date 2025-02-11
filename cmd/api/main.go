@@ -15,7 +15,7 @@ import (
 func main() {
 	cfg := config.LoadConfig()
 	database := db.InitDB(cfg)
-	
+
 	cta := &db.CoinTransferAccessorImp{
 		Db: database,
 	}
@@ -29,27 +29,27 @@ func main() {
 		Db: database,
 	}
 
-	s := service.NewService(cfg, database)
+	s := service.NewBasicService(database, cfg)
 
 	as := &service.AuthServiceImpl{
-		Service: s,
+		Service:      s,
 		UserAccessor: ua,
 	}
-	bs := &service.BuyServiceImpl {
-		Service: s,
-		UserAccessor: ua,
-		ItemAccessor: ia,
+	bs := &service.BuyServiceImpl{
+		Service:          s,
+		UserAccessor:     ua,
+		ItemAccessor:     ia,
 		UserItemAccessor: uia,
 	}
-	scs := &service.SendCoinsServiceImpl {
-		Service: s,
-		UserAccessor: ua,
+	scs := &service.SendCoinsServiceImpl{
+		Service:              s,
+		UserAccessor:         ua,
 		CoinTransferAccessor: cta,
 	}
-	uis := &service.UserInfoServiceImp {
-		Service: s,
-		UserAccessor: ua,
-		UserItemAccessor: uia,
+	uis := &service.UserInfoServiceImp{
+		Service:              s,
+		UserAccessor:         ua,
+		UserItemAccessor:     uia,
 		CoinTransferAccessor: cta,
 	}
 

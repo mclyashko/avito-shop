@@ -14,17 +14,19 @@ type UserItemAccessor interface {
 }
 
 type UserItemAccessorImpl struct {
-	*Db
+	Db
 }
 
 func (db *UserItemAccessorImpl) GetUserItemsByUsername(ctx context.Context, username string) ([]model.UserItem, error) {
+	pool := db.Db.GetPool()
+	
 	query := `
 		SELECT id, user_login, item_name, quantity
 		FROM user_item
 		WHERE user_login = $1
 	`
 
-	rows, err := db.pool.Query(ctx, query, username)
+	rows, err := pool.Query(ctx, query, username)
 	if (err != nil) {
 		return nil, err
 	}

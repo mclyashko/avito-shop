@@ -23,7 +23,7 @@ type AuthService interface {
 }
 
 type AuthServiceImpl struct {
-	*Service
+	Service
 	UserAccessor db.UserAccessor
 }
 
@@ -32,6 +32,8 @@ const (
 )
 
 func (s *AuthServiceImpl) GetTokenByUsernameAndPassword(ctx context.Context, username string, password string) (*string, error) {
+	cfg := s.Service.GetConfig()
+
 	user, err := s.UserAccessor.GetUserByLogin(ctx, username)
 	if err == db.ErrUserNotFound {
 		hash := sha256.New()
@@ -51,13 +53,13 @@ func (s *AuthServiceImpl) GetTokenByUsernameAndPassword(ctx context.Context, use
 	claims := &JWTClaims{
 		Username: username,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(s.cfg.JwtExpirationDuration)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(cfg.JwtExpirationDuration)),
 		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	signedToken, err := token.SignedString(s.cfg.JwtSecretKey)
+	signedToken, err := token.SignedString(cfg.JwtSecretKey)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to sign token: %v", err)

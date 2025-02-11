@@ -16,7 +16,7 @@ type SendCoinsService interface {
 }
 
 type SendCoinsServiceImpl struct {
-	*Service
+	Service
 	UserAccessor         db.UserAccessor
 	CoinTransferAccessor db.CoinTransferAccessor
 }

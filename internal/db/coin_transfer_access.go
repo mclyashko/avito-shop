@@ -14,17 +14,19 @@ type CoinTransferAccessor interface {
 }
 
 type CoinTransferAccessorImp struct {
-	*Db
+	Db
 }
 
 func (db *CoinTransferAccessorImp) GetUserTransactionHistory(ctx context.Context, username string) (recieved []model.CoinTransfer, sent []model.CoinTransfer, err error) {
+	pool := db.Db.GetPool()
+	
 	query := `
 		SELECT id, sender_login, receiver_login, amount
 		FROM coin_transfer
 		WHERE receiver_login = $1
 	`
 
-	rows, err := db.pool.Query(ctx, query, username)
+	rows, err := pool.Query(ctx, query, username)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -44,7 +46,7 @@ func (db *CoinTransferAccessorImp) GetUserTransactionHistory(ctx context.Context
 		WHERE sender_login = $1
 	`
 
-	rows, err = db.pool.Query(ctx, query, username)
+	rows, err = pool.Query(ctx, query, username)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -39,7 +39,7 @@ func TestAuthServiceImpl_GetTokenByUsernameAndPassword(t *testing.T) {
 		JwtSecretKey:          []byte("12345"),
 		JwtExpirationDuration: time.Hour,
 	}
-	s := &Service{
+	s := &basicServiceImpl{
 		cfg: config,
 	}
 	testUserAccessor := &TestUserAccessor{users: make(map[string]*model.User)}

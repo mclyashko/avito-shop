@@ -12,7 +12,7 @@ type UserInfoService interface {
 }
 
 type UserInfoServiceImp struct {
-	*Service
+	Service
 	UserAccessor         db.UserAccessor
 	UserItemAccessor     db.UserItemAccessor
 	CoinTransferAccessor db.CoinTransferAccessor

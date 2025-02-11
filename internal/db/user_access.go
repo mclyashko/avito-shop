@@ -18,13 +18,15 @@ type UserAccessor interface {
 }
 
 type UserAccessorImpl struct {
-	*Db
+	Db
 }
 
 func (db *UserAccessorImpl) GetUserByLogin(ctx context.Context, login string) (*model.User, error) {
+	pool := db.Db.GetPool()
+	
 	query := `SELECT login, password_hash, balance FROM "user" WHERE login = $1`
 
-	row := db.pool.QueryRow(ctx, query, login)
+	row := pool.QueryRow(ctx, query, login)
 
 	var user model.User
 
@@ -58,6 +60,8 @@ func (db *UserAccessorImpl) GetUserByLoginTx(ctx context.Context, tx pgx.Tx, log
 }
 
 func (db *UserAccessorImpl) InsertNewUser(ctx context.Context, login string, password string, balance int64) (*model.User, error) {
+	pool := db.Db.GetPool()
+
 	user := model.User{
 		Login:        login,
 		PasswordHash: password,
@@ -66,7 +70,7 @@ func (db *UserAccessorImpl) InsertNewUser(ctx context.Context, login string, pas
 
 	query := `INSERT INTO "user" (login, password_hash, balance) VALUES ($1, $2, $3)`
 
-	_, err := db.pool.Exec(ctx, query, user.Login, user.PasswordHash, user.Balance)
+	_, err := pool.Exec(ctx, query, user.Login, user.PasswordHash, user.Balance)
 
 	if err != nil {
 		return nil, fmt.Errorf("could not create user with login: %v", login)

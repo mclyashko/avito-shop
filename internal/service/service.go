@@ -8,18 +8,27 @@ import (
 	"github.com/mclyashko/avito-shop/internal/db"
 )
 
-type Service struct {
+type Service interface {
+	RunWithTx(ctx context.Context, txFunc func(tx pgx.Tx) error) error
+	GetConfig() *config.Config
+}
+
+type basicServiceImpl struct {
+	db  db.Db
 	cfg *config.Config
-	db  *db.Db
 }
 
-func NewService(cfg *config.Config, db *db.Db) *Service{
-	return &Service{
-		cfg: cfg,
-		db: db,
-	}
-}
-
-func (s *Service) RunWithTx(ctx context.Context, txFunc func(tx pgx.Tx) error) error {
+func (s *basicServiceImpl) RunWithTx(ctx context.Context, txFunc func(tx pgx.Tx) error) error {
 	return s.db.RunInTransaction(ctx, txFunc)
+}
+
+func (s *basicServiceImpl) GetConfig() *config.Config {
+	return s.cfg
+}
+
+func NewBasicService(db db.Db, cfg *config.Config) Service {
+	return &basicServiceImpl{
+		db:  db,
+		cfg: cfg,
+	}
 }
