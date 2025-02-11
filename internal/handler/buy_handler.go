@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mclyashko/avito-shop/internal/db"
 	"github.com/mclyashko/avito-shop/internal/middleware"
 	"github.com/mclyashko/avito-shop/internal/service"
@@ -15,7 +14,7 @@ const (
 	itemParamKey = "item"
 )
 
-func BuyItemHandler(c *fiber.Ctx, pool *pgxpool.Pool) error {
+func BuyItemHandler(c *fiber.Ctx, s service.BuyService) error {
 	ctx := c.Context()
 
 	claims, ok := c.Locals(middleware.LocalsClaimsKey).(*service.JWTClaims)
@@ -26,7 +25,7 @@ func BuyItemHandler(c *fiber.Ctx, pool *pgxpool.Pool) error {
 	username := claims.Username
 	itemName := c.Params(itemParamKey)
 
-	err := service.BuyItem(ctx, pool, username, itemName)
+	err := s.BuyItem(ctx, username, itemName)
 	if err != nil {
 		if errors.Is(err, db.ErrItemNotFound) {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"errors": "Item not found"})

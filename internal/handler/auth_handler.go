@@ -4,8 +4,6 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/mclyashko/avito-shop/internal/config"
 	"github.com/mclyashko/avito-shop/internal/service"
 )
 
@@ -18,7 +16,7 @@ type authResponse struct {
 	Token string `json:"token"`
 }
 
-func Authenticate(c *fiber.Ctx, cfg *config.Config, pool *pgxpool.Pool) error {
+func Authenticate(c *fiber.Ctx, s service.AuthService) error {
 	ctx := c.Context()
 
 	var req authRequest
@@ -28,7 +26,7 @@ func Authenticate(c *fiber.Ctx, cfg *config.Config, pool *pgxpool.Pool) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"errors": "Invalid request"})
 	}
 
-	token, err := service.GetTokenByUsernameAndPassword(ctx, cfg, pool, req.Username, req.Password, cfg.JwtSecretKey)
+	token, err := s.GetTokenByUsernameAndPassword(ctx, req.Username, req.Password)
 	if err == service.ErrWrongPassword {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"errors": "Wrong password"})
 	}

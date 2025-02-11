@@ -12,7 +12,15 @@ var (
 	ErrItemNotFound = fmt.Errorf("item not found")
 )
 
-func GetItemByNameTx(ctx context.Context, tx pgx.Tx, itemName string) (*model.Item, error) {
+type ItemAccessor interface {
+	GetItemByNameTx(ctx context.Context, tx pgx.Tx, itemName string) (*model.Item, error)
+}
+
+type ItemAccessorImpl struct {
+	*Db
+}
+
+func (db *ItemAccessorImpl) GetItemByNameTx(ctx context.Context, tx pgx.Tx, itemName string) (*model.Item, error) {
 	query := `
 		SELECT name, price 
 		FROM item 

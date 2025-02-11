@@ -8,8 +8,6 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/mclyashko/avito-shop/internal/config"
 	"github.com/mclyashko/avito-shop/internal/db"
 )
 
@@ -20,14 +18,23 @@ type JWTClaims struct {
 
 var ErrWrongPassword = fmt.Errorf("wrong password")
 
-func GetTokenByUsernameAndPassword(ctx context.Context, cfg *config.Config, pool *pgxpool.Pool, username string, password string, jwtSecretKey []byte) (*string, error) {
-	user, err := db.GetUserByLogin(ctx, pool, username)
+type AuthService interface {
+	GetTokenByUsernameAndPassword(ctx context.Context, username string, password string) (*string, error)
+}
+
+type AuthServiceImpl struct {
+	*Service
+	UserAccessor db.UserAccessor
+}
+
+func (s *AuthServiceImpl) GetTokenByUsernameAndPassword(ctx context.Context, username string, password string) (*string, error) {
+	user, err := s.UserAccessor.GetUserByLogin(ctx, username)
 	if err == db.ErrUserNotFound {
 		hash := sha256.New()
 		hash.Write([]byte(password))
 		hashedPassword := hex.EncodeToString(hash.Sum(nil))
 
-		user, err = db.InsertNewUser(ctx, pool, username, hashedPassword)
+		user, err = s.UserAccessor.InsertNewUser(ctx, username, hashedPassword)
 	}
 	if err != nil {
 		return nil, err
@@ -40,13 +47,13 @@ func GetTokenByUsernameAndPassword(ctx context.Context, cfg *config.Config, pool
 	claims := &JWTClaims{
 		Username: username,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(cfg.JwtExpirationDuration)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(s.cfg.JwtExpirationDuration)),
 		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	signedToken, err := token.SignedString(jwtSecretKey)
+	signedToken, err := token.SignedString(s.cfg.JwtSecretKey)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to sign token: %v", err)

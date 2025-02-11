@@ -3,25 +3,34 @@ package service
 import (
 	"context"
 
-	"github.com/jackc/pgx/v5/pgxpool"
-
 	"github.com/mclyashko/avito-shop/internal/db"
 	"github.com/mclyashko/avito-shop/internal/model"
 )
 
-func GetUserInfo(ctx context.Context, pool *pgxpool.Pool, username string) (balance *int64, userItems []model.UserItem, recievedTransfers []model.CoinTransfer, sentTransfers []model.CoinTransfer, err error) {
-	user, err := db.GetUserByLogin(ctx, pool, username)
+type UserInfoService interface {
+	GetUserInfo(ctx context.Context, username string) (balance *int64, userItems []model.UserItem, recievedTransfers []model.CoinTransfer, sentTransfers []model.CoinTransfer, err error)
+}
+
+type UserInfoServiceImp struct {
+	*Service
+	UserAccessor         db.UserAccessor
+	UserItemAccessor     db.UserItemAccessor
+	CoinTransferAccessor db.CoinTransferAccessor
+}
+
+func (s *UserInfoServiceImp) GetUserInfo(ctx context.Context, username string) (balance *int64, userItems []model.UserItem, recievedTransfers []model.CoinTransfer, sentTransfers []model.CoinTransfer, err error) {
+	user, err := s.UserAccessor.GetUserByLogin(ctx, username)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
 	balance = &user.Balance
 
-	userItems, err = db.GetUserItemsByUsername(ctx, pool, username)
+	userItems, err = s.UserItemAccessor.GetUserItemsByUsername(ctx, username)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
 
-	recievedTransfers, sentTransfers, err = db.GetUserTransactionHistory(ctx, pool, username)
+	recievedTransfers, sentTransfers, err = s.CoinTransferAccessor.GetUserTransactionHistory(ctx, username)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}

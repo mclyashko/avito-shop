@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mclyashko/avito-shop/internal/db"
 	"github.com/mclyashko/avito-shop/internal/middleware"
 	"github.com/mclyashko/avito-shop/internal/service"
@@ -16,7 +15,7 @@ type sendCoinRequest struct {
 	Amount int64  `json:"amount"`
 }
 
-func SendCoinHandler(c *fiber.Ctx, pool *pgxpool.Pool) error {
+func SendCoinHandler(c *fiber.Ctx, s service.SendCoinsService) error {
 	ctx := c.Context()
 
 	claims, ok := c.Locals(middleware.LocalsClaimsKey).(*service.JWTClaims)
@@ -33,7 +32,7 @@ func SendCoinHandler(c *fiber.Ctx, pool *pgxpool.Pool) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"errors": "Invalid request"})
 	}
 
-	err := service.SendCoins(ctx, pool, username, req.ToUser, req.Amount)
+	err := s.SendCoins(ctx, username, req.ToUser, req.Amount)
 	if err != nil {
 		if errors.Is(err, service.ErrNegativeSignTransaction) {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Negative sign transaction"})

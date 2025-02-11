@@ -4,7 +4,6 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mclyashko/avito-shop/internal/middleware"
 	"github.com/mclyashko/avito-shop/internal/service"
 )
@@ -31,7 +30,7 @@ type transaction struct {
 	Amount   int64  `json:"amount"`
 }
 
-func GetInfo(c *fiber.Ctx, pool *pgxpool.Pool) error {
+func GetInfo(c *fiber.Ctx, s service.UserInfoService) error {
 	ctx := c.Context()
 
 	claims, ok := c.Locals(middleware.LocalsClaimsKey).(*service.JWTClaims)
@@ -41,7 +40,7 @@ func GetInfo(c *fiber.Ctx, pool *pgxpool.Pool) error {
 
 	username := claims.Username
 
-	balance, userItems, recievedTransfers, sentTransfers, err := service.GetUserInfo(ctx, pool, username)
+	balance, userItems, recievedTransfers, sentTransfers, err := s.GetUserInfo(ctx, username)
 	if err != nil {
 		log.Printf("Cant get user info for username: %v, error: %v", username, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"errors": "Failed to retrieve user info"})

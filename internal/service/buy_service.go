@@ -3,44 +3,47 @@ package service
 import (
 	"context"
 
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5"
 	"github.com/mclyashko/avito-shop/internal/db"
 )
 
-func BuyItem(ctx context.Context, pool *pgxpool.Pool, username string, itemName string) error {
-	tx, err := pool.Begin(ctx)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback(ctx)
+type BuyService interface {
+	BuyItem(ctx context.Context, username string, itemName string) error
+}
 
-	user, err := db.GetUserByLoginTx(ctx, tx, username)
-	if err != nil {
-		return err
-	}
+type BuyServiceImpl struct {
+	*Service
+	UserAccessor     db.UserAccessor
+	ItemAccessor     db.ItemAccessor
+	UserItemAccessor db.UserItemAccessor
+}
 
-	item, err := db.GetItemByNameTx(ctx, tx, itemName)
-	if err != nil {
-		return err
-	}
+func (s *BuyServiceImpl) BuyItem(ctx context.Context, username string, itemName string) error {
+	return s.RunWithTx(ctx, func(tx pgx.Tx) error {
+		user, err := s.UserAccessor.GetUserByLoginTx(ctx, tx, username)
+		if err != nil {
+			return err
+		}
 
-	if user.Balance < item.Price {
-		return ErrInsufficientFunds
-	}
+		item, err := s.ItemAccessor.GetItemByNameTx(ctx, tx, itemName)
+		if err != nil {
+			return err
+		}
 
-	err = db.UpdateUserBalanceTx(ctx, tx, username, -item.Price)
-	if err != nil {
-		return err
-	}
+		if user.Balance < item.Price {
+			return ErrInsufficientFunds
+		}
 
-	err = db.InsertUserItemTx(ctx, tx, username, itemName)
-	if err != nil {
-		return err
-	}
+		err = s.UserAccessor.UpdateUserBalanceTx(ctx, tx, username, -item.Price)
+		if err != nil {
+			return err
+		}
 
-	if err := tx.Commit(ctx); err != nil {
-		return err
-	}
+		err = s.UserItemAccessor.InsertUserItemTx(ctx, tx, username, itemName)
+		if err != nil {
+			return err
+		}
 
-	return nil
+		return nil
+	})
 }

@@ -5,18 +5,26 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mclyashko/avito-shop/internal/model"
 )
 
-func GetUserTransactionHistory(ctx context.Context, pool *pgxpool.Pool, username string) (recieved []model.CoinTransfer, sent []model.CoinTransfer, err error) {
+type CoinTransferAccessor interface {
+	GetUserTransactionHistory(ctx context.Context, username string) (recieved []model.CoinTransfer, sent []model.CoinTransfer, err error)
+	InsertCoinTransferTx(ctx context.Context, tx pgx.Tx, sender string, reciever string, amount int64) error
+}
+
+type CoinTransferAccessorImp struct {
+	*Db
+}
+
+func (db *CoinTransferAccessorImp) GetUserTransactionHistory(ctx context.Context, username string) (recieved []model.CoinTransfer, sent []model.CoinTransfer, err error) {
 	query := `
 		SELECT id, sender_login, receiver_login, amount
 		FROM coin_transfer
 		WHERE receiver_login = $1
 	`
 
-	rows, err := pool.Query(ctx, query, username)
+	rows, err := db.pool.Query(ctx, query, username)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -36,7 +44,7 @@ func GetUserTransactionHistory(ctx context.Context, pool *pgxpool.Pool, username
 		WHERE sender_login = $1
 	`
 
-	rows, err = pool.Query(ctx, query, username)
+	rows, err = db.pool.Query(ctx, query, username)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -53,7 +61,7 @@ func GetUserTransactionHistory(ctx context.Context, pool *pgxpool.Pool, username
 	return recieved, sent, nil
 }
 
-func InsertCoinTransferTx(ctx context.Context, tx pgx.Tx, sender string, reciever string, amount int64) error {
+func (db *CoinTransferAccessorImp) InsertCoinTransferTx(ctx context.Context, tx pgx.Tx, sender string, reciever string, amount int64) error {
 	query := `
 		INSERT INTO coin_transfer (id, sender_login, receiver_login, amount) 
 		VALUES ($1, $2, $3, $4)
