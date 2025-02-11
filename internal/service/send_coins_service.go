@@ -3,17 +3,17 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mclyashko/avito-shop/internal/db"
 )
 
+var ErrNegativeSignTransaction = errors.New("negative sign")
 var ErrInsufficientFunds = errors.New("insufficient funds")
 
 func SendCoins(ctx context.Context, pool *pgxpool.Pool, sender string, receiver string, amount int64) error {
 	if amount <= 0 {
-		return fmt.Errorf("amount must be greater than zero")
+		return ErrNegativeSignTransaction
 	}
 
 	tx, err := pool.Begin(ctx)
@@ -22,21 +22,29 @@ func SendCoins(ctx context.Context, pool *pgxpool.Pool, sender string, receiver 
 	}
 	defer tx.Rollback(ctx)
 
-	user, err := db.GetUserByLoginTx(ctx, tx, sender)
+	senderUser, err := db.GetUserByLoginTx(ctx, tx, sender)
+	if err != nil {
+		return err
+	}
 
-	if user.Balance < amount {
+	_, err = db.GetUserByLoginTx(ctx, tx, receiver)
+	if err != nil {
+		return err
+	}
+
+	if senderUser.Balance < amount {
 		return ErrInsufficientFunds
 	}
 
-	if err := db.UpdateUserBalance(ctx, tx, sender, -amount); err != nil {
+	if err := db.UpdateUserBalanceTx(ctx, tx, sender, -amount); err != nil {
 		return err
 	}
 
-	if err := db.UpdateUserBalance(ctx, tx, receiver, amount); err != nil {
+	if err := db.UpdateUserBalanceTx(ctx, tx, receiver, amount); err != nil {
 		return err
 	}
 
-	if err := db.InsertCoinTransfer(ctx, tx, sender, receiver, amount); err != nil {
+	if err := db.InsertCoinTransferTx(ctx, tx, sender, receiver, amount); err != nil {
 		return err
 	}
 

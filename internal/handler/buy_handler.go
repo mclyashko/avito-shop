@@ -1,35 +1,37 @@
 package handler
 
 import (
-	"context"
 	"errors"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mclyashko/avito-shop/internal/db"
+	"github.com/mclyashko/avito-shop/internal/middleware"
 	"github.com/mclyashko/avito-shop/internal/service"
 )
 
-func BuyItemHandler(c *fiber.Ctx, ctx context.Context, pool *pgxpool.Pool) error {
-	claims, ok := c.Locals("claims").(*service.JWTClaims)
+const (
+	itemParamKey = "item"
+)
+
+func BuyItemHandler(c *fiber.Ctx, pool *pgxpool.Pool) error {
+	ctx := c.Context()
+
+	claims, ok := c.Locals(middleware.LocalsClaimsKey).(*service.JWTClaims)
 	if !ok {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"errors": "Unauthorized"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"errors": "No token"})
 	}
 
 	username := claims.Username
-
-	itemName := c.Params("item")
-	if itemName == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"errors": "Item name is required"})
-	}
+	itemName := c.Params(itemParamKey)
 
 	err := service.BuyItem(ctx, pool, username, itemName)
 	if err != nil {
-		if errors.Is(err, service.ErrInsufficientFunds) {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"errors": "Insufficient funds"})
-		}
 		if errors.Is(err, db.ErrItemNotFound) {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"errors": "Item not found"})
+		}
+		if errors.Is(err, service.ErrInsufficientFunds) {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"errors": "Insufficient funds"})
 		}
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to process purchase"})
 	}

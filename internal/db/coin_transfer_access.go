@@ -25,7 +25,7 @@ func GetUserTransactionHistory(ctx context.Context, pool *pgxpool.Pool, username
 
 	for rows.Next() {
 		var transfer model.CoinTransfer
-		if err := rows.Scan(&transfer.ID, &transfer.SenderID, &transfer.ReceiverID, &transfer.Amount); err != nil {
+		if err := rows.Scan(&transfer.ID, &transfer.SenderLogin, &transfer.ReceiverLogin, &transfer.Amount); err != nil {
 			return nil, nil, err
 		}
 		recieved = append(recieved, transfer)
@@ -45,7 +45,7 @@ func GetUserTransactionHistory(ctx context.Context, pool *pgxpool.Pool, username
 
 	for rows.Next() {
 		var transfer model.CoinTransfer
-		if err := rows.Scan(&transfer.ID, &transfer.SenderID, &transfer.ReceiverID, &transfer.Amount); err != nil {
+		if err := rows.Scan(&transfer.ID, &transfer.SenderLogin, &transfer.ReceiverLogin, &transfer.Amount); err != nil {
 			return nil, nil, err
 		}
 		sent = append(sent, transfer)
@@ -54,7 +54,7 @@ func GetUserTransactionHistory(ctx context.Context, pool *pgxpool.Pool, username
 	return recieved, sent, nil
 }
 
-func InsertCoinTransfer(ctx context.Context, tx pgx.Tx, sender string, reciever string, amount int64) error {
+func InsertCoinTransferTx(ctx context.Context, tx pgx.Tx, sender string, reciever string, amount int64) error {
 	query := `
 		INSERT INTO coin_transfer (id, sender_id, receiver_id, amount) 
 		VALUES ($1, $2, $3, $4)

@@ -14,12 +14,12 @@ func BuyItem(ctx context.Context, pool *pgxpool.Pool, username string, itemName 
 	}
 	defer tx.Rollback(ctx)
 
-	item, err := db.GetItemByName(ctx, tx, itemName)
+	user, err := db.GetUserByLoginTx(ctx, tx, username)
 	if err != nil {
 		return err
 	}
 
-	user, err := db.GetUserByLoginTx(ctx, tx, username)
+	item, err := db.GetItemByNameTx(ctx, tx, itemName)
 	if err != nil {
 		return err
 	}
@@ -28,15 +28,19 @@ func BuyItem(ctx context.Context, pool *pgxpool.Pool, username string, itemName 
 		return ErrInsufficientFunds
 	}
 
-	err = db.UpdateUserBalance(ctx, tx, username, -item.Price)
+	err = db.UpdateUserBalanceTx(ctx, tx, username, -item.Price)
 	if err != nil {
 		return err
 	}
 
-	err = db.AddUserItem(ctx, tx, username, itemName)
+	err = db.InsertUserItemTx(ctx, tx, username, itemName)
 	if err != nil {
 		return err
 	}
 
-	return tx.Commit(ctx)
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
+
+	return nil
 }

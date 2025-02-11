@@ -1,37 +1,46 @@
 package handler
 
 import (
-	"context"
 	"errors"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/mclyashko/avito-shop/internal/db"
+	"github.com/mclyashko/avito-shop/internal/middleware"
 	"github.com/mclyashko/avito-shop/internal/service"
 )
 
-type SendCoinRequest struct {
+type sendCoinRequest struct {
 	ToUser string `json:"toUser"`
 	Amount int64  `json:"amount"`
 }
 
-func SendCoinHandler(c *fiber.Ctx, ctx context.Context, pool *pgxpool.Pool) error {
-	claims, ok := c.Locals("claims").(*service.JWTClaims)
+func SendCoinHandler(c *fiber.Ctx, pool *pgxpool.Pool) error {
+	ctx := c.Context()
+
+	claims, ok := c.Locals(middleware.LocalsClaimsKey).(*service.JWTClaims)
 	if !ok {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"errors": "Unauthorized"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"errors": "No token"})
 	}
 
 	username := claims.Username
 
-	var req SendCoinRequest
+	var req sendCoinRequest
 
 	if err := c.BodyParser(&req); err != nil {
-		log.Printf("Failed to parse request body: %v", err)
+		log.Printf("Failed to parse request body, error: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"errors": "Invalid request"})
 	}
 
-	err := service.SendCoins(c.Context(), pool, username, req.ToUser, req.Amount)
+	err := service.SendCoins(ctx, pool, username, req.ToUser, req.Amount)
 	if err != nil {
+		if errors.Is(err, service.ErrNegativeSignTransaction) {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Negative sign transaction"})
+		}
+		if errors.Is(err, db.ErrUserNotFound) {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Reciever not found"})
+		}
 		if errors.Is(err, service.ErrInsufficientFunds) {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Insufficient funds"})
 		}

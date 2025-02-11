@@ -10,6 +10,10 @@ import (
 	"github.com/mclyashko/avito-shop/internal/service"
 )
 
+const (
+	LocalsClaimsKey = "claims"
+)
+
 func AuthMiddleware(cfg *config.Config) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		authHeader := c.Get("Authorization")
@@ -36,7 +40,7 @@ func AuthMiddleware(cfg *config.Config) fiber.Handler {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"errors": "Token expired"})
 		}
 
-		c.Locals("claims", claims)
+		c.Locals(LocalsClaimsKey, claims)
 
 		return c.Next()
 	}

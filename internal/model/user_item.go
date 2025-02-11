@@ -5,8 +5,8 @@ import (
 )
 
 type UserItem struct {
-	ID       uuid.UUID
-	UserID   string
-	ItemName string
-	Quantity int // Количество предметов
+	ID        uuid.UUID
+	UserLogin string
+	ItemName  string
+	Quantity  int
 }

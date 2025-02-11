@@ -14,7 +14,7 @@ var (
 	ErrItemNotFound = errors.New("item not found")
 )
 
-func GetItemByName(ctx context.Context, tx pgx.Tx, itemName string) (*model.Item, error) {
+func GetItemByNameTx(ctx context.Context, tx pgx.Tx, itemName string) (*model.Item, error) {
 	query := `
 		SELECT name, price 
 		FROM item 
@@ -38,7 +38,7 @@ func GetItemByName(ctx context.Context, tx pgx.Tx, itemName string) (*model.Item
 	return &item, nil
 }
 
-func AddUserItem(ctx context.Context, tx pgx.Tx, username string, itemName string) error {
+func InsertUserItemTx(ctx context.Context, tx pgx.Tx, username string, itemName string) error {
 	query := `
 		INSERT INTO user_item (id, user_id, item_name, quantity)
 		VALUES ($1, $2, $3, 1)

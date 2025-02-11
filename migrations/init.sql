@@ -14,7 +14,7 @@ CREATE TABLE item (
 -- Таблица покупок пользователя
 CREATE TABLE user_item (
     id UUID PRIMARY KEY,
-    user_id VARCHAR(16) NOT NULL REFERENCES "user"(login),
+    user_login VARCHAR(16) NOT NULL REFERENCES "user"(login),
     item_name VARCHAR(16) NOT NULL REFERENCES item(name),
     quantity INT NOT NULL,  -- Количество предметов
     UNIQUE (user_id, item_name)
@@ -23,18 +23,19 @@ CREATE TABLE user_item (
 -- История переводов
 CREATE TABLE coin_transfer (
     id UUID PRIMARY KEY,
-    sender_id VARCHAR(16) NOT NULL REFERENCES "user"(login),
-    receiver_id VARCHAR(16) NOT NULL REFERENCES "user"(login),
+    sender_login VARCHAR(16) NOT NULL REFERENCES "user"(login),
+    receiver_login VARCHAR(16) NOT NULL REFERENCES "user"(login),
     amount BIGINT NOT NULL  -- Сумма монет
 );
 
 -- Индексы для оптимизации запросов
-CREATE INDEX idx_user_item_user_id ON user_item(user_id);
-CREATE INDEX idx_user_item_item_id ON user_item(item_name);
-CREATE INDEX idx_coin_transfer_sender_id ON coin_transfer(sender_id);
-CREATE INDEX idx_coin_transfer_receiver_id ON coin_transfer(receiver_id);
-CREATE UNIQUE INDEX idx_user_item_unique ON user_item(user_id, item_name);
+CREATE INDEX idx_user_item_user_login ON user_item(user_login);
+CREATE INDEX idx_user_item_item_name ON user_item(item_name);
+CREATE INDEX idx_coin_transfer_sender_login ON coin_transfer(sender_login);
+CREATE INDEX idx_coin_transfer_receiver_login ON coin_transfer(receiver_login);
+CREATE UNIQUE INDEX idx_user_item_unique ON user_item(user_login, item_name);
 
+-- Таблица предметов из условия
 INSERT INTO item (name, price) VALUES
     ('t-shirt', 80),
     ('cup', 20),

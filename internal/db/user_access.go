@@ -2,8 +2,6 @@ package db
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"log"
 
@@ -34,7 +32,7 @@ func GetUserByLogin(ctx context.Context, pool *pgxpool.Pool, login string) (*mod
 		return nil, err
 	}
 
-	log.Printf("Got user: %v", user)
+	log.Printf("Got user with login: %v", user.Login)
 	return &user, nil
 }
 
@@ -54,19 +52,15 @@ func GetUserByLoginTx(ctx context.Context, tx pgx.Tx, login string) (*model.User
 		return nil, err
 	}
 
-	log.Printf("Got user: %v", user)
+	log.Printf("Got user with login: %v", user.Login)
 	return &user, nil
 }
 
 
-func CreateNewUser(ctx context.Context, pool *pgxpool.Pool, login string, password string) (*model.User, error) {
-	hash := sha256.New()
-	hash.Write([]byte(password))
-	hashedPassword := hex.EncodeToString(hash.Sum(nil))
-
+func InsertNewUser(ctx context.Context, pool *pgxpool.Pool, login string, password string) (*model.User, error) {
 	user := model.User{
 		Login: login,
-		PasswordHash: hashedPassword,
+		PasswordHash: password,
 		Balance: initialBalance,
 	}
 
@@ -75,16 +69,15 @@ func CreateNewUser(ctx context.Context, pool *pgxpool.Pool, login string, passwo
 	_, err := pool.Exec(ctx, query, user.Login, user.PasswordHash, user.Balance)
 
 	if err != nil {
-		log.Printf("Failed to create new user: %v", err)
-		return nil, fmt.Errorf("could not create user: %w", err)
+		log.Printf("Failed to create new user with login: %v, error: %v", login, err)
+		return nil, fmt.Errorf("could not create user with login: %v", login)
 	}
 
-
-	log.Printf("User created: %v", user)
+	log.Printf("User with login %v created", login)
 	return &user, nil
 }
 
-func UpdateUserBalance(ctx context.Context, tx pgx.Tx, login string, amount int64) error {
+func UpdateUserBalanceTx(ctx context.Context, tx pgx.Tx, login string, amount int64) error {
 	query := `
 		UPDATE "user" 
 		SET balance = balance + $1 WHERE login = $2

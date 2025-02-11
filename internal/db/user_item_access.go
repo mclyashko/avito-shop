@@ -23,7 +23,7 @@ func GetUserItemsByUsername(ctx context.Context, pool *pgxpool.Pool, username st
 	var items []model.UserItem
 	for rows.Next() {
 		var item model.UserItem
-		if err := rows.Scan(&item.ID, &item.UserID, &item.ItemName, &item.Quantity); err != nil {
+		if err := rows.Scan(&item.ID, &item.UserLogin, &item.ItemName, &item.Quantity); err != nil {
 			return nil, err
 		}
 		items = append(items, item)

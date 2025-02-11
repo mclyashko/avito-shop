@@ -5,8 +5,8 @@ import (
 )
 
 type CoinTransfer struct {
-	ID         uuid.UUID
-	SenderID   string
-	ReceiverID string
-	Amount     int64
+	ID            uuid.UUID
+	SenderLogin   string
+	ReceiverLogin string
+	Amount        int64
 }
