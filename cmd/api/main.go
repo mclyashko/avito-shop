@@ -36,6 +36,10 @@ func main() {
 		return handler.SendCoinHandler(c, ctx, pool)
 	})
 
+	app.Post("/api/buy/:item", middleware.AuthMiddleware(cfg), func  (c *fiber.Ctx) error {
+		return handler.BuyItemHandler(c, ctx, pool)
+	})
+
 	log.Println("Server is running on :8080")
 	log.Fatal(app.Listen(":8080"))
 }

@@ -16,7 +16,8 @@ CREATE TABLE user_item (
     id UUID PRIMARY KEY,
     user_id VARCHAR(16) NOT NULL REFERENCES "user"(login),
     item_name VARCHAR(16) NOT NULL REFERENCES item(name),
-    quantity INT NOT NULL  -- Количество предметов
+    quantity INT NOT NULL,  -- Количество предметов
+    UNIQUE (user_id, item_name)
 );
 
 -- История переводов
@@ -32,3 +33,16 @@ CREATE INDEX idx_user_item_user_id ON user_item(user_id);
 CREATE INDEX idx_user_item_item_id ON user_item(item_name);
 CREATE INDEX idx_coin_transfer_sender_id ON coin_transfer(sender_id);
 CREATE INDEX idx_coin_transfer_receiver_id ON coin_transfer(receiver_id);
+CREATE UNIQUE INDEX idx_user_item_unique ON user_item(user_id, item_name);
+
+INSERT INTO item (name, price) VALUES
+    ('t-shirt', 80),
+    ('cup', 20),
+    ('book', 50),
+    ('pen', 10),
+    ('powerbank', 200),
+    ('hoody', 300),
+    ('umbrella', 200),
+    ('socks', 10),
+    ('wallet', 50),
+    ('pink-hoody', 500);
