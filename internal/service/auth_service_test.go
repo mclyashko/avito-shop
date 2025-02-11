@@ -11,12 +11,12 @@ import (
 	"github.com/mclyashko/avito-shop/internal/model"
 )
 
-type TestUserAccessor struct {
+type testUserAccessor struct {
 	users map[string]*model.User
 	db.UserAccessor
 }
 
-func (t *TestUserAccessor) GetUserByLogin(ctx context.Context, username string) (*model.User, error) {
+func (t *testUserAccessor) GetUserByLogin(ctx context.Context, username string) (*model.User, error) {
 	user, exists := t.users[username]
 	if !exists {
 		return nil, db.ErrUserNotFound
@@ -24,7 +24,7 @@ func (t *TestUserAccessor) GetUserByLogin(ctx context.Context, username string) 
 	return user, nil
 }
 
-func (t *TestUserAccessor) InsertNewUser(ctx context.Context, username string, passwordHash string, balance int64) (*model.User, error) {
+func (t *testUserAccessor) InsertNewUser(ctx context.Context, username string, passwordHash string, balance int64) (*model.User, error) {
 	user := &model.User{
 		Login:        username,
 		PasswordHash: passwordHash,
@@ -42,7 +42,7 @@ func TestAuthServiceImpl_GetTokenByUsernameAndPassword(t *testing.T) {
 	s := &basicServiceImpl{
 		cfg: config,
 	}
-	testUserAccessor := &TestUserAccessor{users: make(map[string]*model.User)}
+	testUserAccessor := &testUserAccessor{users: make(map[string]*model.User)}
 	authService := &AuthServiceImpl{
 		Service:      s,
 		UserAccessor: testUserAccessor,

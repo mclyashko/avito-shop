@@ -10,20 +10,20 @@ import (
 	"github.com/mclyashko/avito-shop/internal/model"
 )
 
-type MockService struct {
+type mockService struct {
 	Service
 }
 
-func (s *MockService) RunWithTx(ctx context.Context, txFunc func(tx pgx.Tx) error) error {
+func (s *mockService) RunWithTx(ctx context.Context, txFunc func(tx pgx.Tx) error) error {
 	return txFunc(nil)
 }
 
-type MockUserAccessor struct {
+type mockUserAccessor struct {
 	users map[string]*model.User
 	db.UserAccessor
 }
 
-func (m *MockUserAccessor) GetUserByLoginTx(ctx context.Context, tx pgx.Tx, username string) (*model.User, error) {
+func (m *mockUserAccessor) GetUserByLoginTx(ctx context.Context, tx pgx.Tx, username string) (*model.User, error) {
 	user, exists := m.users[username]
 	if !exists {
 		return nil, fmt.Errorf("user not found")
@@ -31,7 +31,7 @@ func (m *MockUserAccessor) GetUserByLoginTx(ctx context.Context, tx pgx.Tx, user
 	return user, nil
 }
 
-func (m *MockUserAccessor) UpdateUserBalanceTx(ctx context.Context, tx pgx.Tx, username string, amount int64) error {
+func (m *mockUserAccessor) UpdateUserBalanceTx(ctx context.Context, tx pgx.Tx, username string, amount int64) error {
 	user, exists := m.users[username]
 	if !exists {
 		return fmt.Errorf("user not found")
@@ -40,12 +40,12 @@ func (m *MockUserAccessor) UpdateUserBalanceTx(ctx context.Context, tx pgx.Tx, u
 	return nil
 }
 
-type MockItemAccessor struct {
+type mockItemAccessor struct {
 	items map[string]*model.Item
 	db.ItemAccessor
 }
 
-func (m *MockItemAccessor) GetItemByNameTx(ctx context.Context, tx pgx.Tx, itemName string) (*model.Item, error) {
+func (m *mockItemAccessor) GetItemByNameTx(ctx context.Context, tx pgx.Tx, itemName string) (*model.Item, error) {
 	item, exists := m.items[itemName]
 	if !exists {
 		return nil, fmt.Errorf("item not found")
@@ -53,12 +53,12 @@ func (m *MockItemAccessor) GetItemByNameTx(ctx context.Context, tx pgx.Tx, itemN
 	return item, nil
 }
 
-type MockUserItemAccessor struct {
+type mockUserItemAccessor struct {
 	userItems map[string][]string
 	db.UserItemAccessor
 }
 
-func (m *MockUserItemAccessor) InsertUserItemTx(ctx context.Context, tx pgx.Tx, username string, itemName string) error {
+func (m *mockUserItemAccessor) InsertUserItemTx(ctx context.Context, tx pgx.Tx, username string, itemName string) error {
 	if _, exists := m.userItems[username]; !exists {
 		m.userItems[username] = []string{}
 	}
@@ -67,19 +67,19 @@ func (m *MockUserItemAccessor) InsertUserItemTx(ctx context.Context, tx pgx.Tx, 
 }
 
 func TestBuyServiceImpl_BuyItem(t *testing.T) {
-	mockService := &MockService{}
-	mockUserAccessor := &MockUserAccessor{
+	mockService := &mockService{}
+	mockUserAccessor := &mockUserAccessor{
 		users: map[string]*model.User{
 			"user1": {Login: "user1", Balance: 100},
 		},
 	}
-	mockItemAccessor := &MockItemAccessor{
+	mockItemAccessor := &mockItemAccessor{
 		items: map[string]*model.Item{
 			"item1": {Name: "item1", Price: 50},
 			"item2": {Name: "item2", Price: 200},
 		},
 	}
-	mockUserItemAccessor := &MockUserItemAccessor{
+	mockUserItemAccessor := &mockUserItemAccessor{
 		userItems: make(map[string][]string),
 	}
 
