@@ -2,14 +2,14 @@ package service
 
 import (
 	"context"
-	"errors"
+	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mclyashko/avito-shop/internal/db"
 )
 
-var ErrNegativeSignTransaction = errors.New("negative sign")
-var ErrInsufficientFunds = errors.New("insufficient funds")
+var ErrNegativeSignTransaction = fmt.Errorf("negative sign")
+var ErrInsufficientFunds = fmt.Errorf("insufficient funds")
 
 func SendCoins(ctx context.Context, pool *pgxpool.Pool, sender string, receiver string, amount int64) error {
 	if amount <= 0 {

@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"log"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mclyashko/avito-shop/internal/middleware"
@@ -41,6 +43,7 @@ func GetInfo(c *fiber.Ctx, pool *pgxpool.Pool) error {
 
 	balance, userItems, recievedTransfers, sentTransfers, err := service.GetUserInfo(ctx, pool, username)
 	if err != nil {
+		log.Printf("Cant get user info for username: %v, error: %v", username, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"errors": "Failed to retrieve user info"})
 	}
 

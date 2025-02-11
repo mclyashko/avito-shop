@@ -44,6 +44,7 @@ func SendCoinHandler(c *fiber.Ctx, pool *pgxpool.Pool) error {
 		if errors.Is(err, service.ErrInsufficientFunds) {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Insufficient funds"})
 		}
+		log.Printf("Error sending coins from %v to %v, error: %v", username, req.ToUser, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Internal server error"})
 	}
 

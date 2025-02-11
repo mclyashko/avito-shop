@@ -17,7 +17,7 @@ CREATE TABLE user_item (
     user_login VARCHAR(16) NOT NULL REFERENCES "user"(login),
     item_name VARCHAR(16) NOT NULL REFERENCES item(name),
     quantity INT NOT NULL,  -- Количество предметов
-    UNIQUE (user_id, item_name)
+    UNIQUE (user_login, item_name)
 );
 
 -- История переводов

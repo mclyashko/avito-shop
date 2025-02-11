@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -33,6 +34,7 @@ func BuyItemHandler(c *fiber.Ctx, pool *pgxpool.Pool) error {
 		if errors.Is(err, service.ErrInsufficientFunds) {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"errors": "Insufficient funds"})
 		}
+		log.Printf("Error buying item %v, error: %v", itemName, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to process purchase"})
 	}
 

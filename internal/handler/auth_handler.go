@@ -33,6 +33,7 @@ func Authenticate(c *fiber.Ctx, cfg *config.Config, pool *pgxpool.Pool) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"errors": "Wrong password"})
 	}
 	if err != nil {
+		log.Printf("Failed to get token for username: %v, error: %v", req.Username, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"errors": "Cant get token"})
 	}
 

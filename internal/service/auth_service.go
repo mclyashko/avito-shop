@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -35,7 +34,6 @@ func GetTokenByUsernameAndPassword(ctx context.Context, cfg *config.Config, pool
 	}
 
 	if !comparePasswords(user.PasswordHash, password) {
-		log.Printf("Passwords are not equal for user %s", username)
 		return nil, ErrWrongPassword
 	}
 
@@ -51,7 +49,6 @@ func GetTokenByUsernameAndPassword(ctx context.Context, cfg *config.Config, pool
 	signedToken, err := token.SignedString(jwtSecretKey)
 
 	if err != nil {
-		log.Printf("Error signing token: %v", err)
 		return nil, fmt.Errorf("failed to sign token: %v", err)
 	}
 

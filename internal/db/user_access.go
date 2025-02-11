@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -28,11 +27,9 @@ func GetUserByLogin(ctx context.Context, pool *pgxpool.Pool, login string) (*mod
 		if err == pgx.ErrNoRows {
 			return nil, ErrUserNotFound
 		}
-		log.Printf("Failed to get user by login: %v", err)
 		return nil, err
 	}
 
-	log.Printf("Got user with login: %v", user.Login)
 	return &user, nil
 }
 
@@ -48,11 +45,9 @@ func GetUserByLoginTx(ctx context.Context, tx pgx.Tx, login string) (*model.User
 		if err == pgx.ErrNoRows {
 			return nil, ErrUserNotFound
 		}
-		log.Printf("Failed to get user by login: %v", err)
 		return nil, err
 	}
 
-	log.Printf("Got user with login: %v", user.Login)
 	return &user, nil
 }
 
@@ -69,11 +64,9 @@ func InsertNewUser(ctx context.Context, pool *pgxpool.Pool, login string, passwo
 	_, err := pool.Exec(ctx, query, user.Login, user.PasswordHash, user.Balance)
 
 	if err != nil {
-		log.Printf("Failed to create new user with login: %v, error: %v", login, err)
 		return nil, fmt.Errorf("could not create user with login: %v", login)
 	}
 
-	log.Printf("User with login %v created", login)
 	return &user, nil
 }
 
@@ -85,7 +78,6 @@ func UpdateUserBalanceTx(ctx context.Context, tx pgx.Tx, login string, amount in
 	
 	_, err := tx.Exec(ctx, query, amount, login)
 	if err != nil {
-		log.Printf("Failed to update balance for login: %v, error: %v", login, err)
 		return err
 	}
 	
