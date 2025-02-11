@@ -8,20 +8,16 @@ import (
 	"github.com/mclyashko/avito-shop/internal/model"
 )
 
-const (
-	initialBalance = 1000
-)
-
 var ErrUserNotFound = fmt.Errorf("user not found")
 
 type UserAccessor interface {
 	GetUserByLogin(ctx context.Context, login string) (*model.User, error)
 	GetUserByLoginTx(ctx context.Context, tx pgx.Tx, login string) (*model.User, error)
-	InsertNewUser(ctx context.Context, login string, password string) (*model.User, error)
+	InsertNewUser(ctx context.Context, login string, password string, balance int64) (*model.User, error)
 	UpdateUserBalanceTx(ctx context.Context, tx pgx.Tx, login string, amount int64) error
 }
 
-type UserAccessorImpl struct{
+type UserAccessorImpl struct {
 	*Db
 }
 
@@ -61,11 +57,11 @@ func (db *UserAccessorImpl) GetUserByLoginTx(ctx context.Context, tx pgx.Tx, log
 	return &user, nil
 }
 
-func (db *UserAccessorImpl) InsertNewUser(ctx context.Context, login string, password string) (*model.User, error) {
+func (db *UserAccessorImpl) InsertNewUser(ctx context.Context, login string, password string, balance int64) (*model.User, error) {
 	user := model.User{
 		Login:        login,
 		PasswordHash: password,
-		Balance:      initialBalance,
+		Balance:      balance,
 	}
 
 	query := `INSERT INTO "user" (login, password_hash, balance) VALUES ($1, $2, $3)`

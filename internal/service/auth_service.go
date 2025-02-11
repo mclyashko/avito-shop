@@ -27,6 +27,10 @@ type AuthServiceImpl struct {
 	UserAccessor db.UserAccessor
 }
 
+const (
+	initialBalance = 1000
+)
+
 func (s *AuthServiceImpl) GetTokenByUsernameAndPassword(ctx context.Context, username string, password string) (*string, error) {
 	user, err := s.UserAccessor.GetUserByLogin(ctx, username)
 	if err == db.ErrUserNotFound {
@@ -34,7 +38,7 @@ func (s *AuthServiceImpl) GetTokenByUsernameAndPassword(ctx context.Context, use
 		hash.Write([]byte(password))
 		hashedPassword := hex.EncodeToString(hash.Sum(nil))
 
-		user, err = s.UserAccessor.InsertNewUser(ctx, username, hashedPassword)
+		user, err = s.UserAccessor.InsertNewUser(ctx, username, hashedPassword, initialBalance)
 	}
 	if err != nil {
 		return nil, err
