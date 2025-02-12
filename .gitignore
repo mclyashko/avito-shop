@@ -49,6 +49,10 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+# ide
+.vscode
+*debug*
+
 # Log file
 *.log
 

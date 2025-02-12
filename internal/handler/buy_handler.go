@@ -34,7 +34,7 @@ func BuyItemHandler(c *fiber.Ctx, s service.BuyService) error {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"errors": "Insufficient funds"})
 		}
 		log.Printf("Error buying item %v, error: %v", itemName, err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to process purchase"})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"errors": "Failed to process purchase"})
 	}
 
 	c.Status(fiber.StatusOK)
